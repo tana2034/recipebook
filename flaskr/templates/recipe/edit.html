@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h2 class="subtitle">
+    {% block title %}
+      {% if request.path.endswith('update') %}Edit Recipe
+      {% else %}New Recipe
+      {% endif %}
+    {% endblock %}</h2>
+{% endblock %}
+
+{% block content %}
+  <div class="card">
+  <form method="post" enctype=multipart/form-data>
+    <h3 class="subtitle card__title">Type</h3>
+    <div class="grid">
+    <div class="grid__column">
+    <input type="radio" name="type" value="1" {% if data['type'] == 1 %}checked{% endif %}><label for="url">URL</label>
+    <input type="text" name="url" value="{{ data['url'] }}">
+    </div>
+    <div class="grid__column">
+    <input type="radio" name="type" value="2" {% if data['type'] == 2 %}checked{% endif %}><label for="image">Image File</label>
+    <input type="file" id="file" name="file" value="{{ request.form['title'] }}">
+    </div>
+    </div>
+    <h3 class="subtitle card__title">Detail</h3>
+    <div class="grid">
+      <div class="grid__column">Name<input type="text" name="title" required value="{{ data['title'] }}"></div>
+    </div>
+    <div class="grid">
+      <div class="grid__column">Description<textarea name="description" class="">{{ data['description'] }}</textarea></div>
+    </div>
+    <div class="grid">
+        <div class="grid__column"><input class="button button--primary button--filled display-flex" type="submit" value="Save"></div>
+    </div>
+  </form>
+  </div>
+{% endblock %}

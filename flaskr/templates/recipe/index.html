@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <div class="grid">
+  <div class="grid__column">
+  <h2 class="subtitle">{% block title %}Posts{% endblock %}</h2>
+  </div>
+  {% if g.user %}
+    <div class="grid__column type-right">
+    <a class="action button button--filled button--primary button--sm" href="{{ url_for('recipe.create') }}">New</a>
+    </div>
+  {% endif %}
+  </div>
+{% endblock %}
+
+{% block content %}
+  {% for r in recipes %}
+    <article class="post card type-center">
+      <header>
+        <div>
+          <h3 class="subtitle card__title">{{ r['title'] }}</h2>
+          <div class="about type-right card__content">by {{ r['username'] }} on {{ r['created'].strftime('%Y-%m-%d') }}</div>
+        </div>
+      </header>
+      <p class="body card__content">
+      {% if r['type'] == 1 %}
+        <a href="{{ r['url'] }}">{{r['url']}}</a>
+      {% elif r['type'] == 2 %}
+        <img src="{{ url_for('recipe.uploaded_file', filename=r['filename'])}}">
+      {% endif %}
+      </p>
+      <p class="card__content">{{ r['description'] }}</p>
+      {% if g.user['id'] == r['author_id'] %}
+        <a class="action button button--outlined button--secondary button--xs" href="{{ url_for('recipe.update', id=r['id']) }}">Edit</a>
+      {% endif %}
+    </article>
+    {% if not loop.last %}
+      <hr>
+    {% endif %}
+  {% endfor %}
+{% endblock %}
