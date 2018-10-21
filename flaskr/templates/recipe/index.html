@@ -31,7 +31,8 @@
       </p>
       <p class="card__content">{{ r['description'] }}</p>
       {% if g.user['id'] == r['author_id'] %}
-        <a class="action button button--outlined button--secondary button--xs" href="{{ url_for('recipe.update', id=r['id']) }}">Edit</a>
+        <a class="action button button--outlined button--block button--secondary button--xs" href="{{ url_for('recipe.update', id=r['id']) }}">Edit</a>
+        <a class="action button button--outlined button--block button--medium button--xs delete" href="{{ url_for('recipe.detail', id=r['id']) }}">Detail</a>
       {% endif %}
     </article>
     {% if not loop.last %}

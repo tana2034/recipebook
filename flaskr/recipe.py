@@ -64,8 +64,19 @@ def update(id):
 
 @bp.route('/<int:id>/delete', methods=('POST',))
 @login_required
-def delete():
-    pass
+def delete(id):
+    if request.method == 'POST':
+        recipe = Recipe(None, id)
+        recipe.delete()
+        flash('deleted')
+        return redirect(url_for('recipe.index'))
+
+
+@bp.route('/<int:id>')
+@login_required
+def detail(id):
+    data = get_recipe(id)
+    return render_template('recipe/detail.html', data=data)
 
 
 def get_recipe(id, check_author=True):
@@ -111,6 +122,16 @@ class Recipe():
 
     def update(self):
         pass
+
+
+    def delete(self):
+        if not self.id is None:
+            db = get_db()
+            db.execute(
+                'DELETE FROM recipe WHERE id = ?',
+                (self.id,)
+            )
+            db.commit()
 
 
 class Image(Recipe):
