@@ -2,17 +2,19 @@
 <head>
 <title>{% block title %}{% endblock %} - RecipeBook</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/tent.min.css') }}">
+{% block javascript %}{% endblock %}
 </head>
+
 <body>
 <header class="masthead bg-color-lighter">
   <h1 class="title">RecipeBook</h1>
   <ul class="list list--inline type-right">
     {% if g.user %}
       <li class="list__item"><span>{{ g.user['username'] }}</span>
-      <li class="list__item"><a href="{{ url_for('auth.logout') }}">Log Out</a>
+      <li class="list__item"><a class="button button--outlined" href="{{ url_for('auth.logout') }}">Log Out</a>
     {% else %}
-      <li class="list__item"><a href="{{ url_for('auth.register') }}">Register</a>
-      <li class="list__item"><a href="{{ url_for('auth.login') }}">Log In</a>
+      <li class="list__item"><a class="button button--outlined" href="{{ url_for('auth.register') }}">Register</a>
+      <li class="list__item"><a class="button button--outlined"  href="{{ url_for('auth.login') }}">Log In</a>
     {% endif %}
   </ul>
 </header>
