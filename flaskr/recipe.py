@@ -1,6 +1,6 @@
 import os
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for, send_from_directory
+    Blueprint, flash, g, redirect, render_template, request, url_for, session, send_from_directory
 )
 from werkzeug.exceptions import abort
 from werkzeug.utils import secure_filename
@@ -15,11 +15,13 @@ UPLOAD_FOLDER = 'upload'
 bp = Blueprint('recipe', __name__)
 @bp.route('/')
 def index():
+    user_id = session.get('user_id')
     db = get_db()
     recipes = db.execute(
         'SELECT r.id, r.type, r.filename, r.title, r.description, r.url, r.created, r.author_id, u.username'
-        ' FROM recipe r LEFT OUTER JOIN user u ON r.author_id = u.id'
-        ' ORDER BY created DESC'
+        ' FROM recipe r LEFT OUTER JOIN user u ON r.author_id = u.id WHERE r.author_id = ?'
+        ' ORDER BY created DESC',
+        (user_id, )
     ).fetchall()
     return render_template('recipe/index.html', recipes=recipes)
 
