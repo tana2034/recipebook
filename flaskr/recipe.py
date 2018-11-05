@@ -90,7 +90,7 @@ def get_recipe(id, check_author=True):
     if recipe is None:
         abort(404, "Post id {0} doesn't exist.".format(id))
 
-    if check_author and recipe['author_id'] != g.user['id']:
+    if check_author and recipe['author_id'] != g.user.id:
         abort(403)
 
     return recipe
