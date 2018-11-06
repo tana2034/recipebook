@@ -24,9 +24,9 @@ def register():
             error = 'User {} is already registered.'.format(username)
 
         if error is None:
-            user = User(name=username, password=generate_password_hash(password))
+            user = User(username=username, password=generate_password_hash(password))
             db.session.add(user)
-            db.sessioh.commit()
+            db.session.commit()
             return redirect(url_for('auth.login'))
 
         flash(error)
