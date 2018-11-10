@@ -1,8 +1,10 @@
 import os
 
 from flask import Flask
-from .model import init_db
-from .config import DevelopmentConfig
+from flaskr.model import init_db
+from flaskr.config import DevelopmentConfig
+from flaskr import auth
+from flaskr import recipe
 
 
 def create_app(test_config=None):
@@ -21,16 +23,8 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    from . import auth
     app.register_blueprint(auth.bp)
-
-    # from . import blog
-    # app.register_blueprint(blog.bp)
-    # app.add_url_rule('/', endpoint='index')
-
-    from . import recipe
     app.register_blueprint(recipe.bp)
     app.add_url_rule('/', endpoint='index')
 
     return app
-

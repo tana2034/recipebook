@@ -9,6 +9,7 @@ from .model import db, User
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
+
 @bp.route('/register', methods=('GET', 'POST'))
 def register():
     if request.method == 'POST':
@@ -21,10 +22,11 @@ def register():
         elif not password:
             error = 'Password is required.'
         elif User.query.filter_by(username=username).first() is not None:
-            error = 'User {} is already registered.'.format(username)
+            error = 'Username {} is already registered.'.format(username)
 
         if error is None:
-            user = User(username=username, password=generate_password_hash(password))
+            user = User(username=username,
+                        password=generate_password_hash(password))
             db.session.add(user)
             db.session.commit()
             return redirect(url_for('auth.login'))
@@ -43,9 +45,9 @@ def login():
         user = User.query.filter_by(username=username).first()
 
         if user is None:
-            error = 'Incorrect username.'
+            error = 'Incorrect'
         elif not check_password_hash(user.password, password):
-            error = 'Incorrect password.'
+            error = 'Incorrect'
 
         if error is None:
             session.clear()

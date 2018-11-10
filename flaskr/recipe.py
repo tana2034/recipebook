@@ -1,4 +1,5 @@
 import os
+from enum import Enum
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for, send_from_directory
 )
@@ -9,12 +10,14 @@ from flaskr.auth import login_required
 from flaskr.db import get_db
 from flaskr.validator import Validator
 
-from .model import db, Recipe, User
+from flaskr.model import db, Recipe, User
 
-ALLOWED_EXTENSIONS = set(['pdf','jpeg','jpg','heif','png'])
+ALLOWED_EXTENSIONS = set(['pdf', 'jpeg', 'jpg', 'heif', 'png'])
 UPLOAD_FOLDER = 'upload'
 
 bp = Blueprint('recipe', __name__)
+
+
 @bp.route('/')
 def index():
     recipes = Recipe.query.order_by(Recipe.id.desc()).all()
@@ -24,7 +27,7 @@ def index():
 @bp.route('/create', methods=('GET', 'POST'))
 @login_required
 def create():
-    recipe = ()
+    recipe = None
     if request.method == 'POST':
         recipe = _generateRecipe(request)
         recipe.validate()
@@ -89,9 +92,14 @@ def get_recipe(id, check_author=True):
     return recipe
 
 
+class RecipeType(Enum):
+    WEBPAGE = 1
+    IMAGE = 2
+
+
 def _generateRecipe(request, id=None):
     type = request.form.getlist('type')[0]
-    if type == '2' :
+    if int(type) == RecipeType.IMAGE.value:
         recipe = Image(request, id)
     else:
         recipe = Webpage(request, id)
@@ -104,18 +112,14 @@ class Detail():
         if not id == None:
             self.id = id
 
-
     def validate(self):
         pass
 
-
     def regist(self):
         pass
-    
 
     def update(self):
         pass
-
 
     def delete(self):
         if not self.id is None:
@@ -138,27 +142,26 @@ class Image(Detail):
             self.title = request.form.getlist('title')[0]
             self.description = request.form.getlist('description')[0]
 
-
     def regist(self):
         self.upload_image()
-        recipe = Recipe(type=2, title=self.title, description=self.description, filename=self.filename, author_id=g.user.id)
+        recipe = Recipe(type=RecipeType.IMAGE.value, title=self.title, description=self.description,
+                        filename=self.filename, author_id=g.user.id)
         db.session.add(recipe)
-        db.asession.commit()
-
+        db.session.commit()
 
     def update(self):
         self.upload_image()
         recipe = db.session.query(Recipe).filter_by(id=self.id).first()
-        recipe.type = 2
+        recipe.type = RecipeType.IMAGE.value
         recipe.title = self.title
         recipe.description = self.description
         recipe.filename = self.filename
         db.session.commit()
-        
 
     def upload_image(self):
         file = self.request.files['file']
-        dirpath = os.path.join(bp.root_path , UPLOAD_FOLDER, 'recipes', str(g.user.id))
+        dirpath = os.path.join(bp.root_path, UPLOAD_FOLDER,
+                               'recipes', str(g.user.id))
         os.makedirs(dirpath, exist_ok=True)
         file.save(os.path.join(dirpath, self.filename))
 
@@ -174,16 +177,15 @@ class Webpage(Detail):
             flash('not url')
             return redirect(request.url)
 
-
     def regist(self):
-        recipe = Recipe(type=1, title=self.title, description=self.description, url=self.url, author_id=g.user.id)
+        recipe = Recipe(type=RecipeType.WEBPAGE.value, title=self.title,
+                        description=self.description, url=self.url, author_id=g.user.id)
         db.session.add(recipe)
         db.session.commit()
 
-
     def update(self):
         recipe = db.session.query(Recipe).filter_by(id=self.id).first()
-        recipe.type = 1
+        recipe.type = RecipeType.WEBPAGE.value
         recipe.title = self.title
         recipe.description = self.description
         recipe.url = self.url
