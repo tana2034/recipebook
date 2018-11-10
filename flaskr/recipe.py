@@ -1,7 +1,7 @@
 import os
 from enum import Enum
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for, send_from_directory
+    Blueprint, flash, g, redirect, render_template, request, url_for, session, send_from_directory
 )
 from werkzeug.exceptions import abort
 from werkzeug.utils import secure_filename
