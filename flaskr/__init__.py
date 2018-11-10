@@ -2,16 +2,13 @@ import os
 
 from flask import Flask
 from .model import init_db
+from .config import DevelopmentConfig
+
 
 def create_app(test_config=None):
     # create and configure the app
-    app = Flask(__name__, instance_relative_config=True)
-    app.config.from_mapping(
-        SECRET_KEY='dev',
-        DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
-        SQLALCHEMY_DATABASE_URI='sqlite:///' + os.path.join(app.instance_path, 'flaskr.sqlite'),
-        SQLALCHEMY_TRACK_MODIFICATIONS=True
-    )
+    app = Flask(__name__)
+    app.config.from_object(DevelopmentConfig)
     init_db(app)
 
     if test_config is None:
@@ -36,3 +33,4 @@ def create_app(test_config=None):
     app.add_url_rule('/', endpoint='index')
 
     return app
+
