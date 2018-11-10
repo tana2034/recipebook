@@ -1,0 +1,17 @@
+version: '3'
+services:
+    db:
+      image: 'postgres:11-alpine'
+      ports:
+        - "5432:5432"
+      container_name: localdb
+      restart: always
+      volumes:
+        - pgsql-data:/var/lib/pgsql
+      environment:
+        - "POSTGRES_USER=postgres"
+        - "POSTGRES_PASSWORD=pass1234"
+        - "POSTGRES_DB=recipebook"
+
+volumes:
+  pgsql-data:

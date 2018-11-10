@@ -1,4 +1,5 @@
 import os
+from enum import Enum
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for, session, send_from_directory
 )
@@ -9,30 +10,28 @@ from flaskr.auth import login_required
 from flaskr.db import get_db
 from flaskr.validator import Validator
 
-ALLOWED_EXTENSIONS = set(['pdf','jpeg','jpg','heif','png'])
+from flaskr.model import db, Recipe, User
+
+ALLOWED_EXTENSIONS = {'pdf', 'jpeg', 'jpg', 'heif', 'png'}
 UPLOAD_FOLDER = 'upload'
 
 bp = Blueprint('recipe', __name__)
+
+
 @bp.route('/')
 def index():
-    user_id = session.get('user_id')
-    db = get_db()
-    recipes = db.execute(
-        'SELECT r.id, r.type, r.filename, r.title, r.description, r.url, r.created, r.author_id, u.username'
-        ' FROM recipe r LEFT OUTER JOIN user u ON r.author_id = u.id WHERE r.author_id = ?'
-        ' ORDER BY created DESC',
-        (user_id, )
-    ).fetchall()
+    recipes = Recipe.query.order_by(Recipe.id.desc()).all()
     return render_template('recipe/index.html', recipes=recipes)
 
 
 @bp.route('/create', methods=('GET', 'POST'))
 @login_required
 def create():
-    recipe = ()
+    recipe = None
     if request.method == 'POST':
         recipe = _generateRecipe(request)
-        recipe.validate()
+        if not recipe.validate():
+            return redirect(request.url)
         recipe.regist()
         flash('regist successed')
         return redirect(url_for('recipe.index'))
@@ -46,7 +45,7 @@ def allowed_file(filename):
 
 @bp.route('/uploads/<filename>')
 def uploaded_file(filename):
-    path = os.path.join(bp.root_path, UPLOAD_FOLDER, 'recipes', str(g.user['id']))
+    path = os.path.join(bp.root_path, UPLOAD_FOLDER, 'recipes', str(g.user.id))
     return send_from_directory(path, filename)
 
 
@@ -57,7 +56,8 @@ def update(id):
 
     if request.method == 'POST':
         recipe = _generateRecipe(request, id)
-        recipe.validate()
+        if not recipe.validate():
+            return redirect(request.url)
         recipe.update()
         flash('update successed')
         return redirect(url_for('recipe.index'))
@@ -68,8 +68,9 @@ def update(id):
 @login_required
 def delete(id):
     if request.method == 'POST':
-        recipe = Recipe(None, id)
-        recipe.delete()
+        recipe = Recipe.query.filter_by(id=id).first()
+        db.session.delete(recipe)
+        db.session.commit()
         flash('deleted')
         return redirect(url_for('recipe.index'))
 
@@ -82,106 +83,99 @@ def detail(id):
 
 
 def get_recipe(id, check_author=True):
-    recipe = get_db().execute(
-        'SELECT r.id, r.title, r.type, r.url, r.description, r.filename, r.created, r.author_id, u.username'
-        ' FROM recipe r JOIN user u ON r.author_id = u.id'
-        ' WHERE r.id = ?',
-        (id,)
-    ).fetchone()
+    recipe = Recipe.query.filter_by(id=id).first()
 
     if recipe is None:
         abort(404, "Post id {0} doesn't exist.".format(id))
 
-    if check_author and recipe['author_id'] != g.user['id']:
+    if check_author and recipe.author_id != g.user.id:
         abort(403)
 
     return recipe
 
 
+class RecipeType(Enum):
+    WEBPAGE = 1
+    IMAGE = 2
+
+
 def _generateRecipe(request, id=None):
     type = request.form.getlist('type')[0]
-    if type == '2' :
+    if int(type) == RecipeType.IMAGE.value:
         recipe = Image(request, id)
     else:
         recipe = Webpage(request, id)
     return recipe
 
 
-class Recipe():
+class Detail():
     def __init__(self, request, id=None):
         self.request = request
         if not id == None:
             self.id = id
 
-
     def validate(self):
         pass
 
-
     def regist(self):
         pass
-    
 
     def update(self):
         pass
-
 
     def delete(self):
         if not self.id is None:
-            db = get_db()
-            db.execute(
-                'DELETE FROM recipe WHERE id = ?',
-                (self.id,)
-            )
-            db.commit()
+            db.session.delete(Recipe(id=self.id))
+            db.session.commit()
 
 
-class Image(Recipe):
+class Image(Detail):
     def validate(self):
         request = self.request
+
         if 'file' not in request.files:
             flash('No file part')
-            return redirect(request.url)
+            return False
         file = request.files['file']
+        if not file:
+            flash('No file data')
+            return False
         if file.filename == '':
             flash('No selected file')
-            return redirect(request.url)
-        if file and allowed_file(file.filename):
-            self.filename = secure_filename(file.filename)
-            self.title = request.form.getlist('title')[0]
-            self.description = request.form.getlist('description')[0]
-
+            return False
+        if not allowed_file(file.filename):
+            flash('Invalid file extension')
+            return False
+        self.filename = secure_filename(file.filename)
+        self.title = request.form.getlist('title')[0]
+        self.description = request.form.getlist('description')[0]
+        return True
 
     def regist(self):
         self.upload_image()
-        db = get_db()
-        db.execute(
-            'INSERT INTO recipe (type, title, description, filename, author_id)'
-            ' VALUES (?, ?, ?, ?, ?)',
-            (2, self.title, self.description, self.filename, g.user['id'])
-        )
-        db.commit()
-
+        recipe = Recipe(type=RecipeType.IMAGE.value, title=self.title, description=self.description,
+                        filename=self.filename, author_id=g.user.id)
+        db.session.add(recipe)
+        db.session.commit()
 
     def update(self):
         self.upload_image()
-        db = get_db()
-        db.execute(
-            'UPDATE recipe SET type = ?, title = ?, description = ?, filename = ?, author_id = ?'
-            ' WHERE id = ?',
-            (2, self.title, self.description, self.filename, g.user['id'], self.id)
-        )
-        db.commit()
-        
+        recipe = db.session.query(Recipe).filter_by(id=self.id).first()
+        recipe.type = RecipeType.IMAGE.value
+        recipe.title = self.title
+        recipe.description = self.description
+        recipe.filename = self.filename
+        db.session.commit()
 
     def upload_image(self):
         file = self.request.files['file']
-        dirpath = os.path.join(bp.root_path , UPLOAD_FOLDER, 'recipes', str(g.user['id']))
+        dirpath = os.path.join(bp.root_path, UPLOAD_FOLDER,
+                               'recipes', str(g.user.id))
         os.makedirs(dirpath, exist_ok=True)
         file.save(os.path.join(dirpath, self.filename))
 
 
-class Webpage(Recipe):
+class Webpage(Detail):
     def validate(self):
         request = self.request
         self.url = request.form.getlist('url')[0]
@@ -190,24 +184,19 @@ class Webpage(Recipe):
         validator = Validator()
         if not validator.isUrl(self.url):
             flash('not url')
-            return redirect(request.url)
-
+            return False
+        return True
 
     def regist(self):
-        db = get_db()
-        db.execute(
-            'INSERT INTO recipe (type, title, description, url, author_id)'
-            ' VALUES (?, ?, ?, ?, ?)',
-            (1, self.title, self.description, self.url, g.user['id'])
-        )
-        db.commit()
-
+        recipe = Recipe(type=RecipeType.WEBPAGE.value, title=self.title,
+                        description=self.description, url=self.url, author_id=g.user.id)
+        db.session.add(recipe)
+        db.session.commit()
 
     def update(self):
-        db = get_db()
-        db.execute(
-            'UPDATE recipe SET type = ?, title = ?, description = ?, url = ?, author_id = ?'
-            ' WHERE id = ?',
-            (1, self.title, self.description, self.url, g.user['id'], self.id)
-        )
-        db.commit()
+        recipe = db.session.query(Recipe).filter_by(id=self.id).first()
+        recipe.type = RecipeType.WEBPAGE.value
+        recipe.title = self.title
+        recipe.description = self.description
+        recipe.url = self.url
+        db.session.commit()
