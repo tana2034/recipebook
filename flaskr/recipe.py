@@ -12,7 +12,7 @@ from flaskr.validator import Validator
 
 from flaskr.model import db, Recipe, User
 
-ALLOWED_EXTENSIONS = set(['pdf', 'jpeg', 'jpg', 'heif', 'png'])
+ALLOWED_EXTENSIONS = {'pdf', 'jpeg', 'jpg', 'heif', 'png'}
 UPLOAD_FOLDER = 'upload'
 
 bp = Blueprint('recipe', __name__)
@@ -30,7 +30,8 @@ def create():
     recipe = None
     if request.method == 'POST':
         recipe = _generateRecipe(request)
-        recipe.validate()
+        if not recipe.validate():
+            return redirect(request.url)
         recipe.regist()
         flash('regist successed')
         return redirect(url_for('recipe.index'))
@@ -55,7 +56,8 @@ def update(id):
 
     if request.method == 'POST':
         recipe = _generateRecipe(request, id)
-        recipe.validate()
+        if not recipe.validate():
+            return redirect(request.url)
         recipe.update()
         flash('update successed')
         return redirect(url_for('recipe.index'))
@@ -130,17 +132,22 @@ class Detail():
 class Image(Detail):
     def validate(self):
         request = self.request
+
         if 'file' not in request.files:
             flash('No file part')
-            return redirect(request.url)
+            return False
         file = request.files['file']
+        if not file:
+            flash('No file data')
+            return False
         if file.filename == '':
             flash('No selected file')
-            return redirect(request.url)
-        if file and allowed_file(file.filename):
+            return False
+        if allowed_file(file.filename):
             self.filename = secure_filename(file.filename)
             self.title = request.form.getlist('title')[0]
             self.description = request.form.getlist('description')[0]
+            return True
 
     def regist(self):
         self.upload_image()
@@ -175,7 +182,8 @@ class Webpage(Detail):
         validator = Validator()
         if not validator.isUrl(self.url):
             flash('not url')
-            return redirect(request.url)
+            return False
+        return True
 
     def regist(self):
         recipe = Recipe(type=RecipeType.WEBPAGE.value, title=self.title,
