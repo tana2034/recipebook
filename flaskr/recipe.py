@@ -143,11 +143,13 @@ class Image(Detail):
         if file.filename == '':
             flash('No selected file')
             return False
-        if allowed_file(file.filename):
-            self.filename = secure_filename(file.filename)
-            self.title = request.form.getlist('title')[0]
-            self.description = request.form.getlist('description')[0]
-            return True
+        if not allowed_file(file.filename):
+            flash('Invalid file extension')
+            return False
+        self.filename = secure_filename(file.filename)
+        self.title = request.form.getlist('title')[0]
+        self.description = request.form.getlist('description')[0]
+        return True
 
     def regist(self):
         self.upload_image()
