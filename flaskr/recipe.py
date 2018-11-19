@@ -9,8 +9,8 @@ from werkzeug.utils import secure_filename
 from flaskr.auth import login_required
 from flaskr.db import get_db
 from flaskr.validator import Validator
-
 from flaskr.model import db, Recipe, User
+from flaskr.dropbox_file import download_from_dropbox, upload_to_dropbox, delete_from_dropbox
 
 ALLOWED_EXTENSIONS = {'pdf', 'jpeg', 'jpg', 'heif', 'png'}
 UPLOAD_FOLDER = 'upload'
@@ -45,7 +45,13 @@ def allowed_file(filename):
 
 @bp.route('/uploads/<filename>')
 def uploaded_file(filename):
-    path = os.path.join(bp.root_path, UPLOAD_FOLDER, 'recipes', str(g.user.id))
+    path = os.path.join(bp.root_path, UPLOAD_FOLDER,
+                        'recipes', str(g.user.id))
+    filepath = os.path.join(path, filename)
+    remotepath = os.path.join(UPLOAD_FOLDER,
+                              'recipes', str(g.user.id), filename)
+    if not os.path.exists(filepath):
+        download_from_dropbox('/' + remotepath, filepath)
     return send_from_directory(path, filename)
 
 
@@ -68,9 +74,8 @@ def update(id):
 @login_required
 def delete(id):
     if request.method == 'POST':
-        recipe = Recipe.query.filter_by(id=id).first()
-        db.session.delete(recipe)
-        db.session.commit()
+        recipe = Detail(request, id)
+        recipe.delete()
         flash('deleted')
         return redirect(url_for('recipe.index'))
 
@@ -124,9 +129,13 @@ class Detail():
         pass
 
     def delete(self):
-        if not self.id is None:
-            db.session.delete(Recipe(id=self.id))
-            db.session.commit()
+        recipe = Recipe.query.filter_by(id=self.id).first()
+        if not recipe.filename is None:
+            path = os.path.join(UPLOAD_FOLDER,
+                                'recipes', str(g.user.id), recipe.filename)
+            delete_from_dropbox("/" + path)
+        db.session.delete(recipe)
+        db.session.commit()
 
 
 class Image(Detail):
@@ -169,10 +178,9 @@ class Image(Detail):
 
     def upload_image(self):
         file = self.request.files['file']
-        dirpath = os.path.join(bp.root_path, UPLOAD_FOLDER,
-                               'recipes', str(g.user.id))
-        os.makedirs(dirpath, exist_ok=True)
-        file.save(os.path.join(dirpath, self.filename))
+        dirpath = os.path.join(UPLOAD_FOLDER,
+                               'recipes', str(g.user.id), self.filename)
+        upload_to_dropbox(file, '/' + dirpath)
 
 
 class Webpage(Detail):
