@@ -14,8 +14,8 @@ def upload_to_dropbox(file, uploadpath):
     try:
         dbx.files_upload(file.read(), uploadpath, mode=WriteMode('overwrite'))
     except ApiError as err:
-        if (err.error.is_path() and
-                err.error.get_path().reason.is_insufficient_space()):
+        if err.error.is_path() and \
+                err.error.get_path().reason.is_insufficient_space():
             sys.exit("ERROR: Cannot back up; insufficient space.")
         elif err.user_message_text:
             print(err.user_message_text)
