@@ -1,5 +1,4 @@
 from flaskr.dropbox_file import upload_to_dropbox, download_from_dropbox, delete_from_dropbox
-from dropbox.exceptions import ApiError, AuthError
 
 
 class Uploader:

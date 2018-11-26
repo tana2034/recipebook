@@ -3,7 +3,7 @@ import sys
 import dropbox
 from io import StringIO
 from dropbox.files import WriteMode
-from dropbox.exceptions import ApiError, AuthError
+from dropbox.exceptions import ApiError
 
 
 dbx = dropbox.Dropbox(os.environ['DROPBOX_API_KEY'])
@@ -16,11 +16,12 @@ def upload_to_dropbox(file, uploadpath):
     except ApiError as err:
         if err.error.is_path() and \
                 err.error.get_path().reason.is_insufficient_space():
-            sys.exit("ERROR: Cannot back up; insufficient space.")
+            print("ERROR: Cannot back up; insufficient space.")
         elif err.user_message_text:
             print(err.user_message_text)
         else:
             print(err)
+        raise
 
 
 def download_from_dropbox(remotepath, localpath):
@@ -44,3 +45,4 @@ def delete_from_dropbox(remotepath):
         md = dbx.files_delete(remotepath)
     except dropbox.files.DeleteError as err:
         print('*** Api error', err)
+        raise
