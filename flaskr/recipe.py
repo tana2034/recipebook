@@ -20,7 +20,13 @@ bp = Blueprint('recipe', __name__)
 
 @bp.route('/')
 def index():
-    recipes = Recipe.query.order_by(Recipe.id.desc()).all()
+    try:
+        if not g.user.id is None:
+            recipes = Recipe.query.filter(
+                Recipe.author_id == g.user.id).order_by(Recipe.id.desc()).all()
+    except AttributeError:
+        recipes = Recipe.query.filter(
+            Recipe.type == RecipeType.WEBPAGE.value).order_by(Recipe.id.desc()).all()
     return render_template('recipe/index.html', recipes=recipes)
 
 
@@ -47,6 +53,8 @@ def allowed_file(filename):
 def uploaded_file(filename):
     path = os.path.join(bp.root_path, UPLOAD_FOLDER,
                         'recipes', str(g.user.id))
+    if not os.path.exists(path):
+        os.mkdir(path)
     filepath = os.path.join(path, filename)
     remotepath = os.path.join(UPLOAD_FOLDER,
                               'recipes', str(g.user.id), filename)
