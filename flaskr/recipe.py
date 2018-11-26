@@ -54,7 +54,7 @@ def uploaded_file(filename):
     path = os.path.join(bp.root_path, UPLOAD_FOLDER,
                         'recipes', str(g.user.id))
     if not os.path.exists(path):
-        os.mkdir(path)
+        os.makedirs(path)
     filepath = os.path.join(path, filename)
     remotepath = os.path.join(UPLOAD_FOLDER,
                               'recipes', str(g.user.id), filename)
