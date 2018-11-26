@@ -9,8 +9,8 @@ from werkzeug.utils import secure_filename
 from flaskr.auth import login_required
 from flaskr.db import get_db
 from flaskr.validator import Validator
-
 from flaskr.model import db, Recipe, User
+from flaskr.uploader import DropBoxUploader
 
 ALLOWED_EXTENSIONS = {'pdf', 'jpeg', 'jpg', 'heif', 'png'}
 UPLOAD_FOLDER = 'upload'
@@ -20,7 +20,13 @@ bp = Blueprint('recipe', __name__)
 
 @bp.route('/')
 def index():
-    recipes = Recipe.query.order_by(Recipe.id.desc()).all()
+    try:
+        if not g.user.id is None:
+            recipes = Recipe.query.filter(
+                Recipe.author_id == g.user.id).order_by(Recipe.id.desc()).all()
+    except AttributeError:
+        recipes = Recipe.query.filter(
+            Recipe.type == RecipeType.WEBPAGE.value).order_by(Recipe.id.desc()).all()
     return render_template('recipe/index.html', recipes=recipes)
 
 
@@ -45,7 +51,16 @@ def allowed_file(filename):
 
 @bp.route('/uploads/<filename>')
 def uploaded_file(filename):
-    path = os.path.join(bp.root_path, UPLOAD_FOLDER, 'recipes', str(g.user.id))
+    path = os.path.join(bp.root_path, UPLOAD_FOLDER,
+                        'recipes', str(g.user.id))
+    if not os.path.exists(path):
+        os.makedirs(path)
+    filepath = os.path.join(path, filename)
+    remotepath = os.path.join(UPLOAD_FOLDER,
+                              'recipes', str(g.user.id), filename)
+    if not os.path.exists(filepath):
+        uploader = DropBoxUploader()
+        uploader.download('/' + remotepath, filepath)
     return send_from_directory(path, filename)
 
 
@@ -68,9 +83,8 @@ def update(id):
 @login_required
 def delete(id):
     if request.method == 'POST':
-        recipe = Recipe.query.filter_by(id=id).first()
-        db.session.delete(recipe)
-        db.session.commit()
+        recipe = Detail(request, DropBoxUploader(), id)
+        recipe.delete()
         flash('deleted')
         return redirect(url_for('recipe.index'))
 
@@ -101,18 +115,20 @@ class RecipeType(Enum):
 
 def _generateRecipe(request, id=None):
     type = request.form.getlist('type')[0]
+    uploader = DropBoxUploader()
     if int(type) == RecipeType.IMAGE.value:
-        recipe = Image(request, id)
+        recipe = Image(request, uploader, id)
     else:
-        recipe = Webpage(request, id)
+        recipe = Webpage(request, uploader, id)
     return recipe
 
 
 class Detail():
-    def __init__(self, request, id=None):
+    def __init__(self, request, uploader, id=None):
         self.request = request
         if not id == None:
             self.id = id
+        self.uploader = uploader
 
     def validate(self):
         pass
@@ -124,9 +140,13 @@ class Detail():
         pass
 
     def delete(self):
-        if not self.id is None:
-            db.session.delete(Recipe(id=self.id))
-            db.session.commit()
+        recipe = Recipe.query.filter_by(id=self.id).first()
+        if not recipe.filename is None:
+            path = os.path.join(UPLOAD_FOLDER,
+                                'recipes', str(g.user.id), recipe.filename)
+            self.uploader.delete("/" + path)
+        db.session.delete(recipe)
+        db.session.commit()
 
 
 class Image(Detail):
@@ -169,10 +189,10 @@ class Image(Detail):
 
     def upload_image(self):
         file = self.request.files['file']
-        dirpath = os.path.join(bp.root_path, UPLOAD_FOLDER,
-                               'recipes', str(g.user.id))
-        os.makedirs(dirpath, exist_ok=True)
-        file.save(os.path.join(dirpath, self.filename))
+
+        dirpath = os.path.join(UPLOAD_FOLDER,
+                               'recipes', str(g.user.id), self.filename)
+        self.uploader.upload(file,  '/' + dirpath)
 
 
 class Webpage(Detail):
