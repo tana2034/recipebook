@@ -11,7 +11,8 @@ cycler==0.10.0
 dropbox==9.1.0
 Flask==1.0.2
 Flask-SQLAlchemy==2.3.2
--e git+https://github.com/tana2034/recipebook.git@4d487c407c14912edef6b2df58b6604d4d3d9889#egg=flaskr
+-e git+https://github.com/tana2034/recipebook.git@b3b6c46203e1051cba3d2cc03f77e93422196226#egg=flaskr
+gunicorn==19.9.0
 idna==2.7
 isort==4.3.4
 itsdangerous==0.24
