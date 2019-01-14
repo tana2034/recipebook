@@ -2,15 +2,17 @@ import os
 
 from flask import Flask
 from flaskr.db import Session
-from flaskr.config import DevelopmentConfig
+from flaskr.config import DevelopmentConfig, ProductionConfig
 from flaskr import auth
 from flaskr import recipe
 
 
 def create_app(test_config=None):
     app = Flask(__name__)
-
-    app.config.from_object(DevelopmentConfig)
+    if app.config['ENV'] == 'production':
+        app.config.from_object(ProductionConfig)
+    else:
+        app.config.from_object(ProductionConfig)
 
     if test_config is None:
         app.config.from_pyfile('config.py', silent=True)
