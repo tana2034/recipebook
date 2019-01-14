@@ -1,16 +1,10 @@
 import os
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, Integer, Text, String, ForeignKey,DateTime
+from sqlalchemy import Column, Integer, Text, String, ForeignKey, DateTime
 from datetime import datetime
+from flaskr.db import Base
 
 
-db = SQLAlchemy()
-
-def init_db(app):
-    db.init_app(app)
-
-
-class Recipe(db.Model):
+class Recipe(Base):
 
     __tablename__ = 'recipe'
 
@@ -22,11 +16,11 @@ class Recipe(db.Model):
     url = Column(String)
     description = Column(String)
     created_at = Column(DateTime, nullable=False, default=datetime.now)
-    updated_at = Column(DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
+    updated_at = Column(DateTime, nullable=False,
+                        default=datetime.now, onupdate=datetime.now)
 
 
-
-class User(db.Model):
+class User(Base):
 
     __tablename__ = 'user'
 
@@ -34,4 +28,5 @@ class User(db.Model):
     username = Column(String(255), nullable=False)
     password = Column(Text, nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.now)
-    updated_at = Column(DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
+    updated_at = Column(DateTime, nullable=False,
+                        default=datetime.now, onupdate=datetime.now)

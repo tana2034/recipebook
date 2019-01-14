@@ -1,17 +1,16 @@
 import os
 
 from flask import Flask
-from flaskr.model import init_db
+from flaskr.db import Session
 from flaskr.config import DevelopmentConfig
 from flaskr import auth
 from flaskr import recipe
 
 
 def create_app(test_config=None):
-    # create and configure the app
     app = Flask(__name__)
+
     app.config.from_object(DevelopmentConfig)
-    init_db(app)
 
     if test_config is None:
         app.config.from_pyfile('config.py', silent=True)
@@ -28,3 +27,11 @@ def create_app(test_config=None):
     app.add_url_rule('/', endpoint='index')
 
     return app
+
+
+app = create_app()
+
+
+@app.teardown_appcontext
+def cleanup(resp_or_exc):
+    Session.remove()
