@@ -1,4 +1,5 @@
 import functools
+import os
 
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
@@ -18,7 +19,9 @@ def register():
         password = request.form['password']
         error = None
 
-        if not username:
+        if os.environ['FLASK_ENV'] == 'production':
+            error = "Sorry, registration is now closed."
+        elif not username:
             error = 'Username is required.'
         elif not password:
             error = 'Password is required.'
