@@ -5,8 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker, Session
 from sqlalchemy.ext.declarative import declarative_base
 
-#engine = create_engine(os.environ['SQLALCHEMY_DATABASE_URI'])
-engine = create_engine('postgresql://postgres:pass1234@localhost/recipebook')
+engine = create_engine(os.environ['SQLALCHEMY_DATABASE_URI'])
 Session = scoped_session(sessionmaker(bind=engine))
 Base = declarative_base()
 Base.query = Session.query_property()
