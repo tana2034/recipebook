@@ -5,7 +5,8 @@ from flask import (
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from .model import db, User
+from flaskr.model import User
+from flaskr.db import session_scope
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -27,8 +28,8 @@ def register():
         if error is None:
             user = User(username=username,
                         password=generate_password_hash(password))
-            db.session.add(user)
-            db.session.commit()
+            with session_scope() as sess:
+                sess.add(user)
             return redirect(url_for('auth.login'))
 
         flash(error)

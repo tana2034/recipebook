@@ -7,10 +7,10 @@ from werkzeug.exceptions import abort
 from werkzeug.utils import secure_filename
 
 from flaskr.auth import login_required
-from flaskr.db import get_db
 from flaskr.validator import Validator
-from flaskr.model import db, Recipe, User
+from flaskr.model import Recipe, User
 from flaskr.uploader import DropBoxUploader
+from flaskr.db import session_scope
 
 ALLOWED_EXTENSIONS = {'pdf', 'jpeg', 'jpg', 'heif', 'png'}
 UPLOAD_FOLDER = 'upload'
@@ -145,8 +145,8 @@ class Detail():
             path = os.path.join(UPLOAD_FOLDER,
                                 'recipes', str(g.user.id), recipe.filename)
             self.uploader.delete("/" + path)
-        db.session.delete(recipe)
-        db.session.commit()
+        with session_scope() as session:
+            session.delete(recipe)
 
 
 class Image(Detail):
@@ -175,17 +175,17 @@ class Image(Detail):
         self.upload_image()
         recipe = Recipe(type=RecipeType.IMAGE.value, title=self.title, description=self.description,
                         filename=self.filename, author_id=g.user.id)
-        db.session.add(recipe)
-        db.session.commit()
+        with session_scope() as session:
+            session.add(recipe)
 
     def update(self):
         self.upload_image()
-        recipe = db.session.query(Recipe).filter_by(id=self.id).first()
-        recipe.type = RecipeType.IMAGE.value
-        recipe.title = self.title
-        recipe.description = self.description
-        recipe.filename = self.filename
-        db.session.commit()
+        with session_scope() as session:
+            recipe = session.query(Recipe).filter_by(id=self.id).first()
+            recipe.type = RecipeType.IMAGE.value
+            recipe.title = self.title
+            recipe.description = self.description
+            recipe.filename = self.filename
 
     def upload_image(self):
         file = self.request.files['file']
@@ -210,13 +210,13 @@ class Webpage(Detail):
     def regist(self):
         recipe = Recipe(type=RecipeType.WEBPAGE.value, title=self.title,
                         description=self.description, url=self.url, author_id=g.user.id)
-        db.session.add(recipe)
-        db.session.commit()
+        with session_scope() as session:
+            session.add(recipe)
 
     def update(self):
-        recipe = db.session.query(Recipe).filter_by(id=self.id).first()
-        recipe.type = RecipeType.WEBPAGE.value
-        recipe.title = self.title
-        recipe.description = self.description
-        recipe.url = self.url
-        db.session.commit()
+        with session_scope() as session:
+            recipe = session.query(Recipe).filter_by(id=self.id).first()
+            recipe.type = RecipeType.WEBPAGE.value
+            recipe.title = self.title
+            recipe.description = self.description
+            recipe.url = self.url
