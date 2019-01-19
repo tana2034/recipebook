@@ -1,4 +1,6 @@
 import os
+import hashlib
+from datetime import datetime
 from enum import Enum
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for, session, send_from_directory
@@ -172,27 +174,32 @@ class Image(Detail):
         return True
 
     def regist(self):
-        self.upload_image()
+        filename = self.upload_image()
         recipe = Recipe(type=RecipeType.IMAGE.value, title=self.title, description=self.description,
-                        filename=self.filename, author_id=g.user.id)
+                        filename=filename, author_id=g.user.id)
         with session_scope() as session:
             session.add(recipe)
 
     def update(self):
-        self.upload_image()
+        filename = self.upload_image()
         with session_scope() as session:
             recipe = session.query(Recipe).filter_by(id=self.id).first()
             recipe.type = RecipeType.IMAGE.value
             recipe.title = self.title
             recipe.description = self.description
-            recipe.filename = self.filename
+            recipe.filename = filename
 
     def upload_image(self):
         file = self.request.files['file']
-
+        ext = os.path.splitext(self.filename)
+        m = hashlib.sha1()
+        m.update(self.filename.encode('utf-8'))
+        m.update(datetime.now().strftime('%s').encode('utf-8'))
+        newfilename = m.hexdigest() + ext[1]
         dirpath = os.path.join(UPLOAD_FOLDER,
-                               'recipes', str(g.user.id), self.filename)
+                               'recipes', str(g.user.id), newfilename)
         self.uploader.upload(file,  '/' + dirpath)
+        return newfilename
 
 
 class Webpage(Detail):
