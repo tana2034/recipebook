@@ -174,32 +174,32 @@ class Image(Detail):
         return True
 
     def regist(self):
-        filename = self.upload_image()
+        hashed_filename = self.upload_image()
         recipe = Recipe(type=RecipeType.IMAGE.value, title=self.title, description=self.description,
-                        filename=filename, author_id=g.user.id)
+                        filename=hashed_filename, author_id=g.user.id)
         with session_scope() as session:
             session.add(recipe)
 
     def update(self):
-        filename = self.upload_image()
+        hashed_filename = self.upload_image()
         with session_scope() as session:
             recipe = session.query(Recipe).filter_by(id=self.id).first()
             recipe.type = RecipeType.IMAGE.value
             recipe.title = self.title
             recipe.description = self.description
-            recipe.filename = filename
+            recipe.filename = hashed_filename
 
     def upload_image(self):
         file = self.request.files['file']
-        ext = os.path.splitext(self.filename)
+        _, ext = os.path.splitext(self.filename)
         m = hashlib.sha1()
         m.update(self.filename.encode('utf-8'))
-        m.update(datetime.now().strftime('%s').encode('utf-8'))
-        newfilename = m.hexdigest() + ext[1]
+        m.update(str(datetime.now().timestamp()).encode('utf-8'))
+        hashed_filename = m.hexdigest() + ext
         dirpath = os.path.join(UPLOAD_FOLDER,
-                               'recipes', str(g.user.id), newfilename)
+                               'recipes', str(g.user.id), hashed_filename)
         self.uploader.upload(file,  '/' + dirpath)
-        return newfilename
+        return hashed_filename
 
 
 class Webpage(Detail):
