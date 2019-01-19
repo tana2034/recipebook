@@ -1,57 +1,59 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h2 class="subtitle">
-    {% block title %}
-      {% if request.path.endswith('update') %}Edit Recipe
-      {% else %}New Recipe
-      {% endif %}
-    {% endblock %}</h2>
+<h2 class="subtitle">
+  {% block title %}
+  {% if request.path.endswith('update') %}Edit Recipe
+  {% else %}New Recipe
+  {% endif %}
+  {% endblock %}</h2>
 {% endblock %}
 
 {% block content %}
-  <div class="card">
-  <form method="post" enctype=multipart/form-data>
-    <div class="grid padding-xxxs">
-      <div class="grid__column">
-        <div class="control control--block">
-          <label class="control__label" for="title">Title</label>
-          <input class="control__input" type="text" name="title" placeholder="Title" required value="{{ data['title'] }}">
-        </div>
+<div class="card">
+  <form method="post" enctype=multipart/form-data> <div class="grid padding-xxxs">
+    <div class="grid__column">
+      <div class="control control--block">
+        <label class="control__label" for="title">Title</label>
+        <input class="control__input" type="text" name="title" placeholder="Title" required value="{{ data['title'] }}">
       </div>
     </div>
-    <div class="grid padding-xxxs">
-      <div class="grid__column">
-        <div class="control control--block">
-          <div class="control__label">recipe type</div>
-          <div class="control control--block">
-            <label class="control__label">
-              <input type="radio" name="type" value="1" {% if data['type'] == 1 %}checked{% endif %}>
-              URL
-            </label>
-            <input type="text" name="url" value="{{ data['url'] }}">
-          </div>
-          <div class="control control--block">
-            <label class="control__label">
-              <input type="radio" name="type" value="2" {% if data['type'] == 2 %}checked{% endif %}>
-              Image file
-            </label>
-            <input type="file" id="file" name="file" value="{{ request.form['title'] }}">
-          </div>
-        </div>
+</div>
+<div class="grid padding-xxxs">
+  <div class="grid__column">
+    <div class="control control--block">
+      <div class="control__label">recipe type</div>
+      <div class="control control--block">
+        <label class="control__label">
+          <input type="radio" name="type" value="1" {% if data['type']==1 %}checked{% endif %}>
+          URL
+        </label>
+        <input type="text" name="url" value="{{ data['url'] }}">
+      </div>
+      <div class="control control--block">
+        <label class="control__label">
+          <input type="radio" name="type" value="2" {% if data['type']==2 %}checked{% endif %}>
+          Image file
+        </label>
+        <input type="file" id="file" name="file" value="{{ request.form['title'] }}">
       </div>
     </div>
-    <div class="grid padding-xxxs">
-      <div class="grid__column">
-        <div class="control control--block">
-          <label class="control__label" for="description">Description</label>
-          <textarea class="control__textarea control__textarea--md" name="description" id="description">{{ data['description'] }}</textarea>
-        </div>
-      </div>
-    </div>
-    <div class="grid padding-xxxs">
-        <div class="grid__column"><input class="button button--primary button--filled display-flex" type="submit" value="Save"></div>
-    </div>
-  </form>
   </div>
+</div>
+<div class="grid padding-xxxs">
+  <div class="grid__column">
+    <div class="control control--block">
+      <label class="control__label" for="description">Description</label>
+      <textarea class="control__textarea control__textarea--md" name="description" id="description">{{ data['description'] }}</textarea>
+    </div>
+  </div>
+</div>
+<div class="grid padding-xxxs">
+  <div class="grid__column">
+    <a href="/" class="button button--outlined button--xxs">Back</a>
+    <input class="button button--primary button--filled button--xs" type="submit" value="Save">
+  </div>
+</div>
+</form>
+</div>
 {% endblock %}
