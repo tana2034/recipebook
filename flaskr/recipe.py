@@ -129,7 +129,7 @@ class Detail():
     def __init__(self, request, uploader, id=None):
         self.request = request
         self.data = None
-        if not id == None:
+        if id is not None:
             self.id = id
             self.data = Recipe.query.filter_by(id=id).first()
         self.uploader = uploader
