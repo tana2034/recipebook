@@ -128,8 +128,10 @@ def _generateRecipe(request, id=None):
 class Detail():
     def __init__(self, request, uploader, id=None):
         self.request = request
-        if not id == None:
+        self.data = None
+        if id is not None:
             self.id = id
+            self.data = Recipe.query.filter_by(id=id).first()
         self.uploader = uploader
 
     def validate(self):
@@ -142,33 +144,33 @@ class Detail():
         pass
 
     def delete(self):
-        recipe = Recipe.query.filter_by(id=self.id).first()
-        if not recipe.filename is None:
+        if not self.data.filename is None:
             path = os.path.join(UPLOAD_FOLDER,
-                                'recipes', str(g.user.id), recipe.filename)
+                                'recipes', str(g.user.id), self.data.filename)
             self.uploader.delete("/" + path)
         with session_scope() as session:
-            session.delete(recipe)
+            session.delete(self.data)
 
 
 class Image(Detail):
     def validate(self):
         request = self.request
 
-        if 'file' not in request.files:
-            flash('No file part')
-            return False
-        file = request.files['file']
-        if not file:
-            flash('No file data')
-            return False
-        if file.filename == '':
-            flash('No selected file')
-            return False
-        if not allowed_file(file.filename):
-            flash('Invalid file extension')
-            return False
-        self.filename = secure_filename(file.filename)
+        if not hasattr(self.data, 'filename') or 'file' in request.files:
+            if 'file' not in request.files:
+                flash('No file part')
+                return False
+            file = request.files['file']
+            if not file:
+                flash('No file data')
+                return False
+            if file.filename == '':
+                flash('No selected file')
+                return False
+            if not allowed_file(file.filename):
+                flash('Invalid file extension')
+                return False
+            self.filename = secure_filename(file.filename)
         self.title = request.form.getlist('title')[0]
         self.description = request.form.getlist('description')[0]
         return True
@@ -187,19 +189,22 @@ class Image(Detail):
             recipe.type = RecipeType.IMAGE.value
             recipe.title = self.title
             recipe.description = self.description
-            recipe.filename = hashed_filename
+            if hashed_filename:
+                recipe.filename = hashed_filename
 
     def upload_image(self):
-        file = self.request.files['file']
-        _, ext = os.path.splitext(self.filename)
-        m = hashlib.sha1()
-        m.update(self.filename.encode('utf-8'))
-        m.update(str(datetime.now().timestamp()).encode('utf-8'))
-        hashed_filename = m.hexdigest() + ext
-        dirpath = os.path.join(UPLOAD_FOLDER,
-                               'recipes', str(g.user.id), hashed_filename)
-        self.uploader.upload(file,  '/' + dirpath)
-        return hashed_filename
+        if 'file' in request.files:
+            file = self.request.files['file']
+            _, ext = os.path.splitext(self.filename)
+            m = hashlib.sha1()
+            m.update(self.filename.encode('utf-8'))
+            m.update(str(datetime.now().timestamp()).encode('utf-8'))
+            hashed_filename = m.hexdigest() + ext
+            dirpath = os.path.join(UPLOAD_FOLDER,
+                                   'recipes', str(g.user.id), hashed_filename)
+            self.uploader.upload(file,  '/' + dirpath)
+            return hashed_filename
+        return ''
 
 
 class Webpage(Detail):
