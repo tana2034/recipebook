@@ -11,12 +11,12 @@ cycler==0.10.0
 dropbox==9.1.0
 Flask==1.0.2
 Flask-SQLAlchemy==2.3.2
--e git+https://github.com/tana2034/recipebook.git@b3b6c46203e1051cba3d2cc03f77e93422196226#egg=flaskr
+-e git+https://github.com/tana2034/recipebook.git@e5c054ecf2c99de0121f04dadb1c7dc2454bb317#egg=flaskr
 gunicorn==19.9.0
 idna==2.7
 isort==4.3.4
 itsdangerous==0.24
-Jinja2==2.10
+Jinja2==2.10.1
 kiwisolver==1.0.1
 lazy-object-proxy==1.3.1
 Mako==1.0.7
@@ -38,7 +38,7 @@ python-dateutil==2.7.3
 python-editor==1.0.3
 requests==2.20.1
 six==1.11.0
-SQLAlchemy==1.2.12
-urllib3==1.24.1
+SQLAlchemy==1.3.3
+urllib3==1.25.1
 Werkzeug==0.14.1
 wrapt==1.10.11
