@@ -9,9 +9,9 @@ click==6.7
 coverage==4.5.1
 cycler==0.10.0
 dropbox==9.1.0
-Flask==1.0.2
+Flask==1.1.1
 Flask-SQLAlchemy==2.3.2
--e git+https://github.com/tana2034/recipebook.git@e5c054ecf2c99de0121f04dadb1c7dc2454bb317#egg=flaskr
+-e git+https://github.com/tana2034/recipebook.git@14c63b944099bff2413aaff95fbbec0c4527d4e3#egg=flaskr
 gunicorn==19.9.0
 idna==2.7
 isort==4.3.4
@@ -40,5 +40,5 @@ requests==2.20.1
 six==1.11.0
 SQLAlchemy==1.3.3
 urllib3==1.25.1
-Werkzeug==0.15.3
+Werkzeug==0.15.5
 wrapt==1.10.11
