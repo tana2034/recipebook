@@ -14,7 +14,7 @@
     <div class="grid__column">
     {% if data['type'] == 1 %}
       <div class="card__content">
-      <a href="{{ data['url'] }}">{{ data['url'] }}</a>
+      <a href="{{ data['url'] }}" target="_blank">{{ data['url'] }}</a>
       </div>
     {% else %}
       <img src="{{ url_for('recipe.uploaded_file', filename=data['filename'])}}">

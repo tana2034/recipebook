@@ -25,7 +25,7 @@
   </header>
   <p class="body card__content">
     {% if r['type'] == 1 %}
-    <a href="{{ r['url'] }}">{{r['url']}}</a>
+    <a href="{{ r['url'] }}" target="_blank">{{r['url']}}</a>
     {% elif r['type'] == 2 %}
     <a href="{{ url_for('recipe.detail', id=r['id']) }}"><img width=" 500" src="{{ url_for('recipe.uploaded_file', filename=r['filename'])}}"></a>
     {% endif %}
