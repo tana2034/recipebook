@@ -18,6 +18,8 @@ node_modules/
 .vscode/
 
 flaskr/upload/
+flaskr/static/
+flaskr/templates/
 
 .DS_Store
 .envrc
