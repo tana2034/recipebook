@@ -9,6 +9,7 @@
 - DB: postgreSQL
 - 画像ファイル保存：dropbox
 - DBマイグレーション：alembic
+- ローカル環境：docker
 
 ## ローカル環境のセットアップ
 
