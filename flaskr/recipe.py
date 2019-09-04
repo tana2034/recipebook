@@ -3,7 +3,7 @@ import hashlib
 from datetime import datetime
 from enum import Enum
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for, session, send_from_directory
+    Blueprint, flash, g, redirect, render_template, request, url_for, session, send_from_directory, jsonify
 )
 from werkzeug.exceptions import abort
 from werkzeug.utils import secure_filename
@@ -22,14 +22,7 @@ bp = Blueprint('recipe', __name__)
 
 @bp.route('/')
 def index():
-    try:
-        if not g.user.id is None:
-            recipes = Recipe.query.filter(
-                Recipe.author_id == g.user.id).order_by(Recipe.id.desc()).all()
-    except AttributeError:
-        recipes = Recipe.query.filter(
-            Recipe.type == RecipeType.WEBPAGE.value).order_by(Recipe.id.desc()).all()
-    return render_template('recipe/index.html', recipes=recipes)
+    return render_template('index.html')
 
 
 @bp.route('/create', methods=('GET', 'POST'))
@@ -96,6 +89,21 @@ def delete(id):
 def detail(id):
     data = get_recipe(id)
     return render_template('recipe/detail.html', data=data)
+
+
+@bp.route('/all', methods=('GET',))
+def all():
+    recipes = Recipe.query.filter(
+        Recipe.type == RecipeType.WEBPAGE.value).order_by(Recipe.id.desc()).all()
+    data = []
+    for r in recipes:
+        data.append({
+            'id': r.id,
+            'title': r.title,
+            'description': r.description,
+            'url': r.url
+        })
+    return jsonify(data)
 
 
 def get_recipe(id, check_author=True):

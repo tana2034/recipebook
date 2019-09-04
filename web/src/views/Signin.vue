@@ -9,7 +9,7 @@
             <v-col xs4 class="grey lighten-4">
                 <v-card flat>
                     <v-card-title primary-title>
-                        <h4>Login</h4>
+                        <h4>Sign in</h4>
                     </v-card-title>
                     <v-form @submit.prevent="signin">
                         <v-card-text>
@@ -17,7 +17,7 @@
                             <v-text-field prepend-icon="lock" name="Password" v-model="password" label="Password" type="password"></v-text-field>
                         </v-card-text>
                         <v-card-actions>
-                            <v-btn primary large block type="submit">Login</v-btn>
+                            <v-btn primary large block type="submit">Sign in</v-btn>
                         </v-card-actions>
                     </v-form>
                 </v-card>
@@ -29,8 +29,9 @@
 <script lang="ts">
 import Vue from 'vue'
 import Router from 'vue-router'
+import { Store } from 'vuex'
 import { Inject, Component } from 'vue-property-decorator'
-import auth from '../auth'
+import axios from 'axios'
 
 @Component
 export default class SigninView extends Vue {
@@ -41,14 +42,25 @@ export default class SigninView extends Vue {
     @Inject()
     public $router!: Router
 
+    @Inject()
+    public $store!: any
+
     public signin() {
-      auth.login(this.username, this.password, (loggedIn) => {
-        if (!loggedIn) {
-          this.error = true
-        } else {
-          // this.$router.replace(this.$route.query.redirect || '/')
-        }
-      })
+        axios
+        .post(
+            '/signin',
+            {
+                username: this.username,
+                password: this.password,
+            },
+        ).then(
+            (response) => {
+                this.$store.dispatch('loginSuccess')
+                this.$router.push({ path: '/dashboard'})
+            },
+        ).catch((error: any) => {
+            alert('ログインできませんでした')
+        })
     }
 }
 </script>

@@ -5,8 +5,9 @@
         <span class="font-weight-light">Recipebook</span>
       </v-toolbar-title>
       <v-spacer />
-      <v-btn flat to="/signin">Sign In</v-btn>
-      <v-btn flat to="/signup">Sign Up</v-btn>
+      <v-btn v-if="!$store.getters.loggedin" to="/signin">Sign In</v-btn>
+      <v-btn v-if="!$store.getters.loggedin" to="/signup">Sign Up</v-btn>
+      <v-btn v-if="$store.getters.loggedin" @click="signout">Sign Out</v-btn>
     </v-app-bar>
 
     <v-content>
@@ -17,11 +18,26 @@
 
 <script lang="ts">
 import Vue from 'vue'
+import axios from 'axios'
 
 export default Vue.extend({
   name: 'App',
   data: () => ({
-    //
   }),
+  methods: {
+    signout() {
+      axios
+      .post(
+          '/signout'
+      ).then(
+          (response) => {
+            this.$store.dispatch('logoutSuccess')
+            this.$router.push({ path: '/' })
+          },
+      ).catch((error: any) => {
+          alert('ログアウトできませんでした')
+      })
+    }
+  }
 })
 </script>

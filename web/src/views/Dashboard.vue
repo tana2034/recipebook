@@ -1,3 +1,3 @@
 <template>
-    <v-container></v-container>
+    <v-container>dashboard</v-container>
 </template>

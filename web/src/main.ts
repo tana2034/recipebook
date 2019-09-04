@@ -9,20 +9,20 @@ Vue.config.productionTip = false
 /**
  * ログイン認証
  */
-// router.beforeEach((to, from, next) => {
-//   if (to.matched.some(record => record.meta.requiresAuth)) {
-//     if (!auth.loggedIn()) {
-//       next({
-//         path: '/login',
-//         query: { redirect: to.fullPath }
-//       })
-//     } else {
-//       next()
-//     }
-//   } else {
-//     next()
-//   }
-// })
+router.beforeEach((to, from, next) => {
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    if (!store.getters.loggedin) {
+      next({
+        path: '/signin',
+        query: { redirect: to.fullPath }
+      })
+    } else {
+      next()
+    }
+  } else {
+    next()
+  }
+})
 
 new Vue({
   router,

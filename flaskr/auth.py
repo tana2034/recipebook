@@ -2,14 +2,14 @@ import functools
 import os
 
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, session, url_for
+    Blueprint, flash, g, redirect, render_template, request, session, url_for, jsonify, abort
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from flaskr.model import User
 from flaskr.db import session_scope
 
-bp = Blueprint('auth', __name__, url_prefix='/auth')
+bp = Blueprint('auth', __name__)
 
 
 @bp.route('/register', methods=('GET', 'POST'))
@@ -78,6 +78,35 @@ def load_logged_in_user():
 def logout():
     session.clear()
     return redirect(url_for('index'))
+
+
+@bp.route('/signin', methods=('POST',))
+def signin():
+    username = request.json['username']
+    password = request.json['password']
+    error = None
+    user = User.query.filter_by(username=username).first()
+
+    if user is None:
+        error = 'Incorrect'
+    elif not check_password_hash(user.password, password):
+        error = 'Incorrect'
+
+    if error is None:
+        session.clear()
+        session['user_id'] = user.id
+        return jsonify({
+            'status': 'success' 
+        })
+    else:
+        return abort(401, {'message': error})
+
+@bp.route('/signout', methods=('POST',))
+def signout():
+    session.clear()
+    return jsonify({
+        'status': 'success'
+    })
 
 
 def login_required(view):
