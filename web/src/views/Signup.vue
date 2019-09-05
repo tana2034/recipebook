@@ -11,7 +11,7 @@
                     <v-card-title primary-title>
                         <h4>Sign Up</h4>
                     </v-card-title>
-                    <v-form @submit.prevent="signin">
+                    <v-form @submit.prevent="signup">
                         <v-card-text>
                             <v-text-field prepend-icon="person" name="Username" v-model="username" label="Username"></v-text-field>
                             <v-text-field prepend-icon="lock" name="Password" v-model="password" label="Password" type="password"></v-text-field>
@@ -31,6 +31,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import { Inject, Component } from 'vue-property-decorator'
 import { Store } from 'vuex/types/index';
+import axios from 'axios';
 
 @Component
 export default class SignupView extends Vue {
@@ -45,7 +46,21 @@ export default class SignupView extends Vue {
     public $store!: any
 
     public signup() {
-        this.$store.dispatch('signup')
+        axios
+        .post(
+            '/signup',
+            {
+                username: this.username,
+                password: this.password,
+            },
+        ).then(
+            (response) => {
+                this.$store.dispatch('loginSuccess')
+                this.$router.push({ path: '/dashboard'})
+            },
+        ).catch((error: any) => {
+            alert('登録できませんでした。')
+        })
     }
 }
 </script>

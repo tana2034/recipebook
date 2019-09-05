@@ -101,12 +101,41 @@ def signin():
     else:
         return abort(401, {'message': error})
 
+
 @bp.route('/signout', methods=('POST',))
 def signout():
     session.clear()
     return jsonify({
         'status': 'success'
     })
+
+
+@bp.route('/signup', methods=('POST',))
+def signup():
+    username = request.json['username']
+    password = request.json['password']
+    error = None
+
+    if os.environ['FLASK_ENV'] == 'production':
+        error = "Sorry, registration is now closed."
+    elif not username:
+        error = 'Username is required.'
+    elif not password:
+        error = 'Password is required.'
+    elif User.query.filter_by(username=username).first() is not None:
+        error = 'Username {} is already registered.'.format(username)
+
+    if error is None:
+        user = User(username=username,
+                    password=generate_password_hash(password))
+        with session_scope() as sess:
+            sess.add(user)
+            session['user_id'] = user.id
+        return jsonify({
+            'status': 'success' 
+        })
+    else:
+        return abort(401, {'message': error})
 
 
 def login_required(view):
