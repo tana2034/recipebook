@@ -2,7 +2,7 @@ import os
 
 from flask import Flask
 from flaskr.db import Session
-from flaskr.config import DevelopmentConfig, ProductionConfig
+from flaskr.config import DevelopmentConfig, ProductionConfig, TestConfig
 from flaskr import auth
 from flaskr import recipe
 
@@ -14,10 +14,8 @@ def create_app(test_config=None):
     else:
         app.config.from_object(ProductionConfig)
 
-    if test_config is None:
-        app.config.from_pyfile('config.py', silent=True)
-    else:
-        app.config.from_mapping(test_config)
+    if test_config is not None:
+        app.config.from_object(TestConfig)
 
     try:
         os.makedirs(app.instance_path)

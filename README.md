@@ -19,6 +19,26 @@ cd recipebook/docker
 docker-compose up -d
 ```
 
+## pytest実行
+
+```
+docker exec -it recipebook_python_1 bash
+python -m pytest
+```
+
+## DB migration
+
+```
+# Create a Migration Script
+alembic revision -m "create account table"
+
+# Running Migration
+alembic upgrade head
+
+# Getting information
+alembic current
+```
+
 ## 画面のスクリーンショット
 
 トップ画面
