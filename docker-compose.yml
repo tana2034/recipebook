@@ -11,6 +11,7 @@ services:
       - "FLASK_ENV=development"
       - "FLASK_SECRET_KEY=dev"
       - "SQLALCHEMY_DATABASE_URI=postgresql://postgres:pass1234@db/recipebook"
+      - "SQLALCHEMY_DATABASE_TEST_URI=postgresql://postgres:pass1234@db/recipebook_test"
       - DROPBOX_API_KEY
     volumes:
       - ./:/usr/src/app
@@ -32,10 +33,10 @@ services:
       - "POSTGRES_PASSWORD=pass1234"
       - "POSTGRES_DB=recipebook"
   
-  npm:
+  yarn:
     image: "node:12.3.1"
     volumes:
-      - ./:/src
+      - ./:/src/web
     entrypoint:
       - yarn
 
